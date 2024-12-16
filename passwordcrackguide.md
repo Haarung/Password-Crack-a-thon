@@ -1,6 +1,6 @@
 Before diving into this project, I plan to implement the single crack, wordlist, and incremental modes using John the Ripper, a password cracking tool. John is typically run locally on a test machine, but it also supports distributing the cracking process across multiple systems, allowing the algorithm to run on more processors and avoid duplicated efforts (for example, if one machine is already testing 'Password1234', the others won't repeat the attempt). I’m using this initial project to assess John’s limitations by running it against a hashed Linux password file and comparing the speeds of brute-force and educated guessing methods. The startercode.sh file will include both the implemented code and the results from today’s work.
 
-I will split this project into 4 steps!
+I will split this project into 3 steps!
 
 Step 0: Setting up
 
@@ -42,7 +42,9 @@ Awesome! We have the rockyou.txt wordlist, which is what real-world password cra
 Next, I'll examine the rockyou wordlist by executing the command: (less -N ./rockyou.txt). The -N option displays line numbers. If you'd prefer not to see line numbers, you can simply run less without this flag. Below is a view of the well-known rockyou wordlist:
 
 ![image](https://github.com/user-attachments/assets/9fc1288b-1af9-4b5e-8360-df5e81dcb13e)
+
 Now that I'm in this directory, I'll have some fun searching using the & key. Let me try typing &puppy and see what results I get:
+
 ![image](https://github.com/user-attachments/assets/85976274-dae3-462d-b77d-918f52ddb38b)
 
 For this project, I will not be using rockyou.txt. Why? Because it's big, and takes a long time to run. Instead, I will use a much smaller wordlist, the provided lower.lst. Feel free to check it out too with less -N lower.lst!
@@ -76,4 +78,56 @@ I just successfully cracked all three pokemon's passwords! I will run john --sho
 
 ![image](https://github.com/user-attachments/assets/3f965c93-edbc-4234-8fef-aff2939d9975)
 
+Next, lets move onto crackB.txt:
 
+![image](https://github.com/user-attachments/assets/0219b411-a061-49be-8fe7-852dd464edcb)
+
+Uh oh! looks like John in single crack mode didnt work up against crackB.txt. We may need something fancier for this one...
+
+WORDLIST MODE (crackB.txt)
+
+I will bring back the wordlists from step 2! John's wordlist mode will take any wordlist as a dictionary and try every password in there. (It will also do basic mangling, trying different mixes of upper/lowercase letters, etc.)
+
+![image](https://github.com/user-attachments/assets/b9f89053-0d50-4cc1-bbc5-ae73b451820e)
+
+Just like that as I wait for 2-3 minutes I crack one of the passwords! (Oh, Jim...) But there are three passwords in the file. To get the other passwords, we'll need to add some mangling rules.
+
+Dwight used some l33tspeak, which we can check for with --rules=l33t
+
+![image](https://github.com/user-attachments/assets/0a8f5e9c-9f9a-4ab1-a213-b000a4799fdb)
+
+Sneaky Pam tried mixing up her lowercase and uppercase letters, but she can't stop the inevitable!
+
+![image](https://github.com/user-attachments/assets/fd522e40-d22e-4c92-a1ff-48a2380e8913)
+
+I have successfully cracked Jim, Dwight, and Pam's passwords! Run john --show crackB.txt to view them.
+![image](https://github.com/user-attachments/assets/9b0381be-42ae-4935-8d78-1cf52af65330)
+
+INCREMENTAL MODE (crackC.txt)
+
+Finally, there's incremental. This mode is the most powerful... but also the most slow.
+
+Have you ever tried to guess someone's PIN number by just trying things? 1111, 1112, 1113, etc.. Well, John's incremental mode does this at a huge scale.
+
+By default, it will try every legal permutation of all 97 ASCII characters up to 13 characters long. That's over 67 septillion possibilities, and will take a really long time.
+
+To speed things up, we can make some educated guesses about how people usually construct their passwords.
+
+The three passwords we will be cracking in this mode are pinball, pacman and frogger. We will be using the crackC.txt file. The pinball password is strictly numeric and is 4-6 digits long, Here is the command: (john --incremental=digits --min-length=4 --max-length=6 crackC.txt)
+
+![image](https://github.com/user-attachments/assets/8c117655-d802-4d75-a3a3-bd0a377bc7b0)
+
+Next, I will crack pacman. This password follows a common pattern: A number, an uppercase letter, and some lowercase letters. To do this, I will use a mask.
+I will use command(john --mask=?d?u?l?l crackC.txt) Where '?u' represents an uppercase letter, '?l' represents a lowercase letter, and '?d' is a digit.
+
+![image](https://github.com/user-attachments/assets/0c714e23-84c3-41b7-a421-bee939900024)
+
+Now, for frogger's password follows an even more common pattern. A 4-letter word, a number, and an exclamation mark! (Ever make a password that resembles that?). I will use this command: john --mask=?l?l?l?l?d! crackC.txt
+
+For more information on masking, check out: https://www.openwall.com/john/doc/RULES.shtml
+
+![image](https://github.com/user-attachments/assets/2ba32257-7e14-4b6d-b3c5-38fbea9ea1b0)
+
+I have successfully cracked all the games' passwords! I will now run john --show crackC.txt to view them.
+
+![image](https://github.com/user-attachments/assets/57d6cb71-e393-401e-b061-ba647314d403)
